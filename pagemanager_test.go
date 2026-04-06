@@ -15,6 +15,15 @@ func TestPageManagerCreator(t *testing.T) {
 	}
 	defer pm.file.Close()
 
+	oldPageID := pm.numOfPages
+	newPageID, err := pm.AllocatePage()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	if newPageID != oldPageID+1 {
+		t.Fatalf("AllocatePage failed")
+	}
+
 	fileInfo, err := pm.file.Stat()
 	if err != nil {
 		t.Fatalf("failed to stat db file: %v", err)
