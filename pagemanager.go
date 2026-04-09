@@ -22,7 +22,7 @@ type PageManager struct {
 func (pm *PageManager) AllocatePage() (uint32, error) {
 	newPageID := pm.numOfPages + 1
 	if newPageID+1 > MaxPageID {
-		return newPageID, fmt.Errorf("Max number of pages is reached.")
+		return newPageID, fmt.Errorf("Max number of pages is reached")
 	}
 	pm.numOfPages = newPageID
 	offset := int64(newPageID) * PageSize
@@ -41,9 +41,20 @@ func (pm *PageManager) AllocatePage() (uint32, error) {
 	return newPageID, nil
 }
 
-func (pm *PageManager) WritePage(pageID int, page *Page) error {
+// Writes "page" to disk
+func (pm *PageManager) WritePage(pageID uint32, page *Page) error {
 	offset := int64(pageID) * PageSize
 	_, err := pm.file.WriteAt(page[:], offset)
+	return err
+}
+
+// Loads page data to "page" for reading
+func (pm *PageManager) ReadPage(pageID uint32, page *Page) error {
+	if pageID == 0 || pageID > pm.numOfPages {
+		return fmt.Errorf("Invalid pageID")
+	}
+	offset := int64(pageID) * PageSize
+	_, err := pm.file.ReadAt(page[:], offset)
 	return err
 }
 

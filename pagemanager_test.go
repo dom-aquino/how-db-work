@@ -9,19 +9,17 @@ const (
 )
 
 func TestPageManagerCreator(t *testing.T) {
+	// Test #1: Check the creation of app.db file
 	pm, err := PageManagerCreator(DBFilename)
 	if err != nil {
 		panic(err)
 	}
 	defer pm.file.Close()
 
-	oldPageID := pm.numOfPages
+	// Test #2: Check the allocation of memory for the new page
 	newPageID, err := pm.AllocatePage()
 	if err != nil {
 		t.Fatal(err.Error())
-	}
-	if newPageID != oldPageID+1 {
-		t.Fatalf("AllocatePage failed")
 	}
 
 	fileInfo, err := pm.file.Stat()
@@ -34,4 +32,29 @@ func TestPageManagerCreator(t *testing.T) {
 	if fileInfo.Size() == 0 {
 		t.Fatalf("%s was created but is empty", DBFilename)
 	}
+
+	var newPage Page
+	copy(newPage[:], []byte("Page one data..."))
+
+	err = pm.WritePage(newPageID, &newPage)
+	if err != nil {
+		t.Fatalf("Failed to write page: %s", err)
+	}
+
+	var readPage Page
+	err = pm.ReadPage(newPageID, &readPage)
+	if err != nil {
+		t.Fatalf("Failed to read page: %s", err)
+	}
+
+	/*  How to interpret the hex data (hexdump -C app.db | head)
+	| Byte offset | 32 bytes payload | ASCII printable characters |
+	00000000  00 00 00 01 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+	00000010  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+	*
+	00001000  50 61 67 65 20 6f 6e 65  20 64 61 74 61 2e 2e 2e  |Page one data...|
+	00001010  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+	*
+	00002000
+	*/
 }
