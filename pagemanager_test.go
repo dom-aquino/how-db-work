@@ -33,6 +33,7 @@ func TestPageManagerCreator(t *testing.T) {
 		t.Fatalf("%s was created but is empty", DBFilename)
 	}
 
+	// Test #3: Check that the page was created
 	var newPage Page
 	copy(newPage[:], []byte("Page one data..."))
 
@@ -43,6 +44,25 @@ func TestPageManagerCreator(t *testing.T) {
 
 	var readPage Page
 	err = pm.ReadPage(newPageID, &readPage)
+	if err != nil {
+		t.Fatalf("Failed to read page: %s", err)
+	}
+
+	anotherPageID, err := pm.AllocatePage()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	var anotherNewPage Page
+	copy(anotherNewPage[:], []byte("Page two data..."))
+
+	err = pm.WritePage(anotherPageID, &anotherNewPage)
+	if err != nil {
+		t.Fatalf("Failed to write page: %s", err)
+	}
+
+	var anotherReadPage Page
+	err = pm.ReadPage(anotherPageID, &anotherReadPage)
 	if err != nil {
 		t.Fatalf("Failed to read page: %s", err)
 	}
