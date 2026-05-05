@@ -25,26 +25,38 @@ func CreateBTree(rootNodeKey int, order int) (*BTree, error) {
 }
 
 func CreateOrUpdateChildNode(key int, parentNode *Node) {
-	for childNode := range parentNode.children {
-		fmt.Printf("%T", childNode)
+	if len(parentNode.children) == 0 {
+		var newNode Node
+		newNode.keys = append(newNode.keys, key)
+		parentNode.children = append(parentNode.children, &newNode)
 	}
+}
 
-	keyToMove := parentNode.keys[0]       // Get the leftmost key
-	parentNode.keys = parentNode.keys[1:] // Re-slice excluding the leftmost key
+func (btree *BTree) SplitNode(node *Node) {
+	// Create new root code using the middle key of the current node
+	var middleKey int = (len(node.keys) / 2)
+	var newRootNode Node
+	newRootNode.keys = append(newRootNode.keys, node.keys[middleKey])
+	btree.Root = &newRootNode
 
-	var newNode Node
-	newNode.keys = append(newNode.keys, keyToMove)
-	parentNode.children = append(parentNode.children, &newNode)
+	var leftNode Node
+	leftNode.keys = node.keys[0:middleKey]
+
+	var rightNode Node
+	rightNode.keys = node.keys[middleKey+1:]
+
+	newRootNode.children = append(newRootNode.children, &leftNode)
+	newRootNode.children = append(newRootNode.children, &rightNode)
 }
 
 func (btree *BTree) Insert(key int, node *Node) {
-	if len(node.keys) < btree.order {
-		node.keys = append(node.keys, key)
-		slices.Sort(node.keys)
-	} else {
-		node.keys = append(node.keys, key)
-		slices.Sort(node.keys)
-		CreateOrUpdateChildNode(key, node)
+	node.keys = append(node.keys, key)
+	slices.Sort(node.keys)
+
+	fmt.Printf("Inserted: %d - %d\n", key, node.keys)
+
+	if len(node.keys) > btree.order {
+		btree.SplitNode(node)
 	}
 }
 

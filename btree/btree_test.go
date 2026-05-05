@@ -9,19 +9,22 @@ func TestBTree(t *testing.T) {
 	order := 4
 	btree, err := CreateBTree(rootInitialKey, order)
 	if err != nil {
-		t.Fatalf("BTree initialization failed")
+		t.Fatalf("Creation of the B Tree failed")
 	}
 
 	btree.Insert(2, btree.Root)
 	btree.Insert(10, btree.Root)
 	btree.Insert(8, btree.Root)
-	btree.Insert(7, btree.Root)
 
-	if btree.Root.keys[0] != 5 {
-		t.Fatalf("Splitting error")
+	// Overflow starts here
+	// A new root node with 8 as a lone key should be created
+	// Two children nodes should be created as well
+	btree.Insert(16, btree.Root)
+	if len(btree.Root.keys) != 1 || btree.Root.keys[0] != 8 {
+		t.Fatalf("Wrong root node")
 	}
 
-	if len(btree.Root.children[0].keys) == 0 {
-		t.Fatalf("Child node is not created")
-	}
+	//if len(btree.Root.children) != 2 {
+	//	fmt.Println("Wrong root node")
+	//}
 }

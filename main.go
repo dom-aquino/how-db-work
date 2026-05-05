@@ -7,6 +7,6 @@ func main() {
 	btree.Insert(2, btree.Root)
 	btree.Insert(10, btree.Root)
 	btree.Insert(8, btree.Root)
-	btree.Insert(7, btree.Root)
+	btree.Insert(16, btree.Root)
 	btree.ViewTree()
 }
