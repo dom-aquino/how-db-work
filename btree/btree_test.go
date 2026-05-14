@@ -24,7 +24,13 @@ func TestBTree(t *testing.T) {
 		t.Fatalf("Wrong root node")
 	}
 
-	//if len(btree.Root.children) != 2 {
-	//	fmt.Println("Wrong root node")
-	//}
+	if len(btree.Root.children) != 2 {
+		t.Fatalf("Wrong root node")
+	}
+
+	// An insert here should add the key to the proper child node
+	btree.Insert(3, btree.Root)
+	if len(btree.Root.children[0].keys) != 3 {
+		t.Fatalf("Added key is not properly cascaded to the child")
+	}
 }

@@ -50,13 +50,21 @@ func (btree *BTree) SplitNode(node *Node) {
 }
 
 func (btree *BTree) Insert(key int, node *Node) {
-	node.keys = append(node.keys, key)
-	slices.Sort(node.keys)
-
-	fmt.Printf("Inserted: %d - %d\n", key, node.keys)
+	if len(node.children) == 0 {
+		node.keys = append(node.keys, key)
+		slices.Sort(node.keys)
+	}
 
 	if len(node.keys) > btree.order {
 		btree.SplitNode(node)
+	} else {
+		for _, child := range node.children {
+			if child.keys[len(child.keys)-1] > key {
+				child.keys = append(child.keys, key)
+				slices.Sort(child.keys)
+				break
+			}
+		}
 	}
 }
 
