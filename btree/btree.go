@@ -16,6 +16,12 @@ type Node struct {
 	children []*Node
 }
 
+type splitResult struct {
+	leftNode    *Node
+	promotedKey int
+	rightNode   *Node
+}
+
 func CreateBTree(rootNodeKey int, order int) (*BTree, error) {
 	var rootNode Node
 	rootNode.keys = append(rootNode.keys, rootNodeKey)
@@ -24,48 +30,63 @@ func CreateBTree(rootNodeKey int, order int) (*BTree, error) {
 	return &btree, nil
 }
 
-func CreateOrUpdateChildNode(key int, parentNode *Node) {
-	if len(parentNode.children) == 0 {
-		var newNode Node
-		newNode.keys = append(newNode.keys, key)
-		parentNode.children = append(parentNode.children, &newNode)
-	}
-}
-
-func (btree *BTree) SplitNode(node *Node) {
-	// Create new root code using the middle key of the current node
+func (btree *BTree) SplitNode(node *Node) (*splitResult, error) {
+	fmt.Println("Splitting node:", node.keys)
 	var middleKey int = (len(node.keys) / 2)
-	var newRootNode Node
-	newRootNode.keys = append(newRootNode.keys, node.keys[middleKey])
-	btree.Root = &newRootNode
 
 	var leftNode Node
-	leftNode.keys = node.keys[0:middleKey]
-
+	leftNode.keys = slices.Clone(node.keys[0:middleKey])
 	var rightNode Node
-	rightNode.keys = node.keys[middleKey+1:]
+	rightNode.keys = slices.Clone(node.keys[middleKey+1:])
 
-	newRootNode.children = append(newRootNode.children, &leftNode)
-	newRootNode.children = append(newRootNode.children, &rightNode)
+	var result splitResult
+	result.leftNode = &leftNode
+	result.promotedKey = node.keys[middleKey]
+	result.rightNode = &rightNode
+
+	return &result, nil
 }
 
-func (btree *BTree) Insert(key int, node *Node) {
+func (btree *BTree) Insert(key int, node *Node) (*splitResult, error) {
+	fmt.Printf("Adding key %d to %d\n", key, node.keys)
+	// Leaf node
 	if len(node.children) == 0 {
+		fmt.Printf("Leaf node\n\n")
 		node.keys = append(node.keys, key)
 		slices.Sort(node.keys)
-	}
-
-	if len(node.keys) > btree.order {
-		btree.SplitNode(node)
+		if len(node.keys) <= btree.order {
+			return nil, nil
+		} else {
+			result, _ := btree.SplitNode(node)
+			if result != nil {
+				if btree.Root == node {
+					var newRootNode Node
+					newRootNode.keys = append(newRootNode.keys, result.promotedKey)
+					newRootNode.children = append(newRootNode.children, result.leftNode, result.rightNode)
+					btree.Root = &newRootNode
+				} else {
+					node.keys = append(node.keys, result.promotedKey)
+					node.children = append(node.children, result.leftNode, result.rightNode)
+				}
+				return result, nil
+			}
+		}
 	} else {
-		for _, child := range node.children {
-			if child.keys[len(child.keys)-1] > key {
-				child.keys = append(child.keys, key)
-				slices.Sort(child.keys)
+		fmt.Printf("Non-Leaf node\n\n")
+		for i, nodeKey := range node.keys {
+			if key < nodeKey {
+				result, _ := btree.Insert(key, node.children[i])
+				if result != nil {
+					node.children = slices.Delete(node.children, i, i+1)
+					node.keys = append(node.keys, result.promotedKey)
+					slices.Sort(node.keys)
+					node.children = append(node.children, result.leftNode, result.rightNode)
+				}
 				break
 			}
 		}
 	}
+	return nil, nil
 }
 
 func (bt *BTree) ViewTree() {
