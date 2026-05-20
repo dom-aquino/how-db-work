@@ -2,3 +2,6 @@ The purpose of this repo is to understand how (relational) databases work under 
 
 Proof of Concept #1 - Fixed-Size Page Manager
 - Build a "page manager" that reads and writes fixed-sized pages to a single binary file. i.e app.db
+
+Proof of Concept #2 - B-Tree
+- Implement a B-Tree. This is what real databases use for indexing
