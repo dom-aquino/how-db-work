@@ -49,41 +49,47 @@ func (btree *BTree) SplitNode(node *Node) (*splitResult, error) {
 
 func (btree *BTree) Insert(key int, node *Node) (*splitResult, error) {
 	fmt.Printf("Adding key %d to %d\n", key, node.keys)
-	// Leaf node
 	if len(node.children) == 0 {
-		fmt.Printf("Leaf node\n\n")
-		node.keys = append(node.keys, key)
-		slices.Sort(node.keys)
-		if len(node.keys) <= btree.order {
-			return nil, nil
+		return btree.insertLeaf(key, node)
+	}
+	return btree.insertNonLeaf(key, node)
+}
+
+func (btree *BTree) insertLeaf(key int, node *Node) (*splitResult, error) {
+	fmt.Printf("Leaf node\n\n")
+	node.keys = append(node.keys, key)
+	slices.Sort(node.keys)
+	if len(node.keys) <= btree.order {
+		return nil, nil
+	}
+	result, _ := btree.SplitNode(node)
+	if result != nil {
+		if btree.Root == node {
+			var newRootNode Node
+			newRootNode.keys = append(newRootNode.keys, result.promotedKey)
+			newRootNode.children = append(newRootNode.children, result.leftNode, result.rightNode)
+			btree.Root = &newRootNode
 		} else {
-			result, _ := btree.SplitNode(node)
-			if result != nil {
-				if btree.Root == node {
-					var newRootNode Node
-					newRootNode.keys = append(newRootNode.keys, result.promotedKey)
-					newRootNode.children = append(newRootNode.children, result.leftNode, result.rightNode)
-					btree.Root = &newRootNode
-				} else {
-					node.keys = append(node.keys, result.promotedKey)
-					node.children = append(node.children, result.leftNode, result.rightNode)
-				}
-				return result, nil
-			}
+			node.keys = append(node.keys, result.promotedKey)
+			node.children = append(node.children, result.leftNode, result.rightNode)
 		}
-	} else {
-		fmt.Printf("Non-Leaf node\n\n")
-		for i, nodeKey := range node.keys {
-			if key < nodeKey {
-				result, _ := btree.Insert(key, node.children[i])
-				if result != nil {
-					node.children = slices.Delete(node.children, i, i+1)
-					node.children = slices.Insert(node.children, i, result.leftNode, result.rightNode)
-					node.keys = append(node.keys, result.promotedKey)
-					slices.Sort(node.keys)
-				}
-				break
+		return result, nil
+	}
+	return nil, nil
+}
+
+func (btree *BTree) insertNonLeaf(key int, node *Node) (*splitResult, error) {
+	fmt.Printf("Non-Leaf node\n\n")
+	for i, nodeKey := range node.keys {
+		if key < nodeKey {
+			result, _ := btree.Insert(key, node.children[i])
+			if result != nil {
+				node.children = slices.Delete(node.children, i, i+1)
+				node.children = slices.Insert(node.children, i, result.leftNode, result.rightNode)
+				node.keys = append(node.keys, result.promotedKey)
+				slices.Sort(node.keys)
 			}
+			break
 		}
 	}
 	return nil, nil
