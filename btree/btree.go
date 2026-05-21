@@ -78,9 +78,9 @@ func (btree *BTree) Insert(key int, node *Node) (*splitResult, error) {
 				result, _ := btree.Insert(key, node.children[i])
 				if result != nil {
 					node.children = slices.Delete(node.children, i, i+1)
+					node.children = slices.Insert(node.children, i, result.leftNode, result.rightNode)
 					node.keys = append(node.keys, result.promotedKey)
 					slices.Sort(node.keys)
-					node.children = append(node.children, result.leftNode, result.rightNode)
 				}
 				break
 			}

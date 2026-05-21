@@ -11,5 +11,8 @@ func main() {
 	btree.Insert(4, btree.Root)
 	btree.Insert(6, btree.Root)
 	btree.Insert(7, btree.Root)
+	btree.Insert(3, btree.Root)
+	btree.Insert(0, btree.Root)
+	btree.Insert(1, btree.Root)
 	btree.ViewTree()
 }
