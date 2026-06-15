@@ -49,10 +49,23 @@ func (btree *BTree) SplitNode(node *Node) (*splitResult, error) {
 
 func (btree *BTree) Insert(key int, node *Node) (*splitResult, error) {
 	fmt.Printf("Adding key %d to %d\n", key, node.keys)
+	var result *splitResult
+	var err error
+
 	if len(node.children) == 0 {
-		return btree.insertLeaf(key, node)
+		result, err = btree.insertLeaf(key, node)
+	} else {
+		result, err = btree.insertNonLeaf(key, node)
 	}
-	return btree.insertNonLeaf(key, node)
+	if result != nil {
+		if node == btree.Root {
+			var newRootNode Node
+			newRootNode.keys = append(newRootNode.keys, result.promotedKey)
+			newRootNode.children = append(newRootNode.children, result.leftNode, result.rightNode)
+			btree.Root = &newRootNode
+		}
+	}
+	return result, err
 }
 
 func (btree *BTree) insertLeaf(key int, node *Node) (*splitResult, error) {
@@ -62,20 +75,21 @@ func (btree *BTree) insertLeaf(key int, node *Node) (*splitResult, error) {
 	if len(node.keys) <= btree.order {
 		return nil, nil
 	}
-	result, _ := btree.SplitNode(node)
-	if result != nil {
-		if btree.Root == node {
-			var newRootNode Node
-			newRootNode.keys = append(newRootNode.keys, result.promotedKey)
-			newRootNode.children = append(newRootNode.children, result.leftNode, result.rightNode)
-			btree.Root = &newRootNode
-		} else {
-			node.keys = []int{result.promotedKey}
-			node.children = append(node.children, result.leftNode, result.rightNode)
-		}
-		return result, nil
-	}
-	return nil, nil
+	return btree.SplitNode(node)
+	//result, _ := btree.SplitNode(node)
+	//if result != nil {
+	//	if btree.Root == node {
+	//		var newRootNode Node
+	//		newRootNode.keys = append(newRootNode.keys, result.promotedKey)
+	//		newRootNode.children = append(newRootNode.children, result.leftNode, result.rightNode)
+	//		btree.Root = &newRootNode
+	//	} else {
+	//		node.keys = []int{result.promotedKey}
+	//		node.children = append(node.children, result.leftNode, result.rightNode)
+	//	}
+	//	return result, nil
+	//}
+	//return nil, nil
 }
 
 func (btree *BTree) insertNonLeaf(key int, node *Node) (*splitResult, error) {
