@@ -89,8 +89,12 @@ func (btree *BTree) insertNonLeaf(key int, node *Node) (*splitResult, error) {
 				node.keys = append(node.keys, result.promotedKey)
 				slices.Sort(node.keys)
 			}
-			break
+			return nil, nil
 		}
+	}
+	result, _ := btree.Insert(key, node.children[len(node.children)-1])
+	if result != nil {
+		node.keys = []int{0}
 	}
 	return nil, nil
 }

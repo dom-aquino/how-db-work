@@ -4,33 +4,47 @@ import (
 	"testing"
 )
 
-func TestBTree(t *testing.T) {
-	rootInitialKey := 5
+func TestBTreeCreation(t *testing.T) {
+	key := 5
 	order := 4
-	btree, err := CreateBTree(rootInitialKey, order)
+	_, err := CreateBTree(key, order)
 	if err != nil {
 		t.Fatalf("Creation of the B Tree failed")
 	}
+}
+
+func TestBTreeNoSplit(t *testing.T) {
+	key := 5
+	order := 4
+	btree, _ := CreateBTree(key, order)
 
 	btree.Insert(2, btree.Root)
 	btree.Insert(10, btree.Root)
 	btree.Insert(8, btree.Root)
+	if len(btree.Root.keys) != 4 {
+		t.Fatalf("Wrong number of keys")
+	}
+	if len(btree.Root.children) != 0 {
+		t.Fatalf("Wrong number of children")
+	}
+}
 
-	// Overflow starts here
-	// A new root node with 8 as a lone key should be created
-	// Two children nodes should be created as well
+func TestBTreeSplitSimple(t *testing.T) {
+	key := 5
+	order := 4
+	btree, _ := CreateBTree(key, order)
+
+	btree.Insert(2, btree.Root)
+	btree.Insert(10, btree.Root)
+	btree.Insert(8, btree.Root)
 	btree.Insert(16, btree.Root)
-	if len(btree.Root.keys) != 1 || btree.Root.keys[0] != 8 {
-		t.Fatalf("Wrong root node")
+	if btree.Root.keys[0] != 8 {
+		t.Fatalf("Wrong root key")
 	}
-
+	if len(btree.Root.keys) != 1 {
+		t.Fatalf("Wrong number of keys")
+	}
 	if len(btree.Root.children) != 2 {
-		t.Fatalf("Wrong root node")
+		t.Fatalf("Wrong number of children")
 	}
-
-	// An insert here should add the key to the proper child node
-	//btree.Insert(3, btree.Root)
-	//if len(btree.Root.children[0].keys) != 3 {
-	//	t.Fatalf("Added key is not properly cascaded to the child")
-	//}
 }
