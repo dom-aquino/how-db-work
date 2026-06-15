@@ -70,7 +70,7 @@ func (btree *BTree) insertLeaf(key int, node *Node) (*splitResult, error) {
 			newRootNode.children = append(newRootNode.children, result.leftNode, result.rightNode)
 			btree.Root = &newRootNode
 		} else {
-			node.keys = append(node.keys, result.promotedKey)
+			node.keys = []int{result.promotedKey}
 			node.children = append(node.children, result.leftNode, result.rightNode)
 		}
 		return result, nil
@@ -92,10 +92,7 @@ func (btree *BTree) insertNonLeaf(key int, node *Node) (*splitResult, error) {
 			return nil, nil
 		}
 	}
-	result, _ := btree.Insert(key, node.children[len(node.children)-1])
-	if result != nil {
-		node.keys = []int{0}
-	}
+	btree.Insert(key, node.children[len(node.children)-1])
 	return nil, nil
 }
 
