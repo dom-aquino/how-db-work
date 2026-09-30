@@ -76,20 +76,6 @@ func (btree *BTree) insertLeaf(key int, node *Node) (*splitResult, error) {
 		return nil, nil
 	}
 	return btree.SplitNode(node)
-	//result, _ := btree.SplitNode(node)
-	//if result != nil {
-	//	if btree.Root == node {
-	//		var newRootNode Node
-	//		newRootNode.keys = append(newRootNode.keys, result.promotedKey)
-	//		newRootNode.children = append(newRootNode.children, result.leftNode, result.rightNode)
-	//		btree.Root = &newRootNode
-	//	} else {
-	//		node.keys = []int{result.promotedKey}
-	//		node.children = append(node.children, result.leftNode, result.rightNode)
-	//	}
-	//	return result, nil
-	//}
-	//return nil, nil
 }
 
 func (btree *BTree) insertNonLeaf(key int, node *Node) (*splitResult, error) {
@@ -106,7 +92,14 @@ func (btree *BTree) insertNonLeaf(key int, node *Node) (*splitResult, error) {
 			return nil, nil
 		}
 	}
-	btree.Insert(key, node.children[len(node.children)-1])
+	result, _ := btree.Insert(key, node.children[len(node.children)-1])
+	if result != nil {
+		lastIdx := len(node.children) - 1
+		node.children = slices.Delete(node.children, lastIdx, lastIdx+1)
+		node.children = append(node.children, result.leftNode, result.rightNode)
+		node.keys = append(node.keys, result.promotedKey)
+		slices.Sort(node.keys)
+	}
 	return nil, nil
 }
 
