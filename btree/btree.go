@@ -45,8 +45,8 @@ func (btree *BTree) SplitNode(node *Node) (*splitResult, error) {
 	result.rightNode = &rightNode
 
 	if len(node.children) != 0 {
-		result.leftNode.children = node.children[0 : middleKey+1]
-		result.rightNode.children = node.children[middleKey+1:]
+		result.leftNode.children = slices.Clone(node.children[0 : middleKey+1])
+		result.rightNode.children = slices.Clone(node.children[middleKey+1:])
 	}
 
 	return &result, nil
