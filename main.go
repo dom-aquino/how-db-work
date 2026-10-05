@@ -16,6 +16,12 @@ func main() {
 	btree.Insert(1, btree.Root)
 	btree.Insert(9, btree.Root)
 	btree.Insert(17, btree.Root)
-	btree.Insert(20, btree.Root) // Here's the current problem
+	btree.Insert(20, btree.Root)
+
+	btree.Insert(13, btree.Root)
+	btree.Insert(18, btree.Root)
+	btree.Insert(19, btree.Root)
+	btree.Insert(21, btree.Root)
+
 	btree.ViewTree()
 }

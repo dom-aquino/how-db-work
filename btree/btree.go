@@ -44,6 +44,11 @@ func (btree *BTree) SplitNode(node *Node) (*splitResult, error) {
 	result.promotedKey = node.keys[middleKey]
 	result.rightNode = &rightNode
 
+	if len(node.children) != 0 {
+		result.leftNode.children = node.children[0 : middleKey+1]
+		result.rightNode.children = node.children[middleKey+1:]
+	}
+
 	return &result, nil
 }
 
@@ -70,35 +75,34 @@ func (btree *BTree) Insert(key int, node *Node) (*splitResult, error) {
 
 func (btree *BTree) insertLeaf(key int, node *Node) (*splitResult, error) {
 	fmt.Printf("Leaf node\n\n")
+
 	node.keys = append(node.keys, key)
 	slices.Sort(node.keys)
-	if len(node.keys) <= btree.order {
-		return nil, nil
+	if len(node.keys) > btree.order {
+		return btree.SplitNode(node)
 	}
-	return btree.SplitNode(node)
+
+	return nil, nil
 }
 
 func (btree *BTree) insertNonLeaf(key int, node *Node) (*splitResult, error) {
 	fmt.Printf("Non-Leaf node\n\n")
-	for i, nodeKey := range node.keys {
+	i := len(node.keys)
+	for j, nodeKey := range node.keys {
 		if key < nodeKey {
-			result, _ := btree.Insert(key, node.children[i])
-			if result != nil {
-				node.children = slices.Delete(node.children, i, i+1)
-				node.children = slices.Insert(node.children, i, result.leftNode, result.rightNode)
-				node.keys = append(node.keys, result.promotedKey)
-				slices.Sort(node.keys)
-			}
-			return nil, nil
+			i = j
+			break
 		}
 	}
-	result, _ := btree.Insert(key, node.children[len(node.children)-1])
+	result, _ := btree.Insert(key, node.children[i])
 	if result != nil {
-		lastIdx := len(node.children) - 1
-		node.children = slices.Delete(node.children, lastIdx, lastIdx+1)
-		node.children = append(node.children, result.leftNode, result.rightNode)
+		node.children = slices.Delete(node.children, i, i+1)
+		node.children = slices.Insert(node.children, i, result.leftNode, result.rightNode)
 		node.keys = append(node.keys, result.promotedKey)
 		slices.Sort(node.keys)
+		if len(node.keys) > btree.order {
+			return btree.SplitNode(node)
+		}
 	}
 	return nil, nil
 }
