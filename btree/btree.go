@@ -107,6 +107,39 @@ func (btree *BTree) insertNonLeaf(key int, node *Node) (*splitResult, error) {
 	return nil, nil
 }
 
+func (btree *BTree) Search(key int) bool {
+	return btree.search(key, btree.Root)
+}
+
+func (btree *BTree) search(key int, node *Node) bool {
+	i, found := slices.BinarySearch(node.keys, key)
+	if found {
+		return true
+	}
+	if len(node.children) == 0 {
+		return false
+	}
+	return btree.search(key, node.children[i])
+}
+
+func (btree *BTree) InOrder() []int {
+	var output []int
+	btree.inOrder(btree.Root, &output)
+	return output
+}
+
+func (btree *BTree) inOrder(node *Node, output *[]int) {
+	if len(node.children) == 0 {
+		*output = append(*output, node.keys...)
+		return
+	}
+	for i, key := range node.keys {
+		btree.inOrder(node.children[i], output)
+		*output = append(*output, key)
+	}
+	btree.inOrder(node.children[len(node.keys)], output)
+}
+
 func (bt *BTree) ViewTree() {
 	if bt.Root == nil {
 		fmt.Println("Tree is empty")

@@ -120,3 +120,31 @@ func collectInOrder(node *Node) []int {
 	result = append(result, collectInOrder(node.children[len(node.children)-1])...)
 	return result
 }
+
+func TestInOrder(t *testing.T) {
+	order := 4
+	btree, _ := CreateBTree(0, order)
+
+	const n = 100
+	keys := make([]int, n)
+	for i := range keys {
+		keys[i] = i + 1
+	}
+	rand.New(rand.NewSource(42)).Shuffle(n, func(i, j int) {
+		keys[i], keys[j] = keys[j], keys[i]
+	})
+
+	for _, key := range keys {
+		btree.Insert(key, btree.Root)
+	}
+
+	validateBTreeStructure(t, btree.Root, order)
+
+	sorted := btree.InOrder()
+
+	for i := 1; i < len(sorted); i++ {
+		if sorted[i-1] >= sorted[i] {
+			t.Fatalf("node keys not strictly sorted")
+		}
+	}
+}
