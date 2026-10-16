@@ -125,7 +125,7 @@ func TestInOrder(t *testing.T) {
 	order := 4
 	btree, _ := CreateBTree(0, order)
 
-	const n = 100
+	const n = 10000
 	keys := make([]int, n)
 	for i := range keys {
 		keys[i] = i + 1
@@ -141,10 +141,16 @@ func TestInOrder(t *testing.T) {
 	validateBTreeStructure(t, btree.Root, order)
 
 	sorted := btree.InOrder()
+	want := append([]int{0}, keys...)
+	sort.Ints(want)
 
-	for i := 1; i < len(sorted); i++ {
-		if sorted[i-1] >= sorted[i] {
-			t.Fatalf("node keys not strictly sorted")
+	if len(sorted) != n+1 {
+		t.Fatalf("number of keys are not complete")
+	}
+
+	for i := range sorted {
+		if sorted[i] != want[i] {
+			t.Fatalf("The result of InOrder is not correct")
 		}
 	}
 }
